@@ -1,0 +1,9 @@
+[
+    {
+        "name": "products",
+        "allowed_functions": [
+            "product_get",
+            "product_init"
+        ]
+    }
+]
