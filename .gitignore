@@ -3,6 +3,8 @@ terraform.tfvars
 
 data/functions/products/product_get/bootstrap
 data/functions/products/product_init/bootstrap
+data/functions/crops/crop_add/bootstrap
+data/functions/crops/crop_get/bootstrap
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
