@@ -11,7 +11,8 @@ import (
 	"github.com/google/uuid"
 )
 
-// dyna.PutItem
+// ! crops.PutItem
+// ! api.POST crops 201
 
 func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	service := getService()

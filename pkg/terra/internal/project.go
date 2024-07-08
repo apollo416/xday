@@ -18,16 +18,18 @@ func newProject(body *hclwrite.Body, dataDir string, p pbuilder.Project) *projec
 		p:        p,
 		dataDir:  dataDir,
 		body:     body,
-		services: []*service{},
 		apis:     []*api{},
+		services: []*service{},
 	}
 
 	for _, service := range project.p.Services {
 		s := newService(project, service)
 		project.services = append(project.services, s)
+	}
 
-		api := newApi(project)
-		project.apis = append(project.apis, api)
+	for _, ap := range project.p.Apis {
+		a := newApi(project, ap)
+		project.apis = append(project.apis, a)
 	}
 
 	return project
@@ -36,5 +38,9 @@ func newProject(body *hclwrite.Body, dataDir string, p pbuilder.Project) *projec
 func (p *project) build() {
 	for _, s := range p.services {
 		s.build()
+	}
+
+	for _, a := range p.apis {
+		a.build()
 	}
 }

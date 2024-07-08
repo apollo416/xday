@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Service struct {
@@ -101,4 +102,22 @@ func listServices(dir string) []string {
 	}
 
 	return services
+}
+
+func (s Service) String() string {
+	str := "(Service: " + s.Name
+	str += ", functions: ["
+	functions := []string{}
+	for _, f := range s.Functions {
+		functions = append(functions, f.String())
+	}
+	str += strings.Join(functions, ", ") + "], "
+	str += "tables: ["
+	tables := []string{}
+	for _, t := range s.Tables {
+		tables = append(tables, t.String())
+	}
+	str += strings.Join(tables, ", ")
+	str += "])"
+	return str
 }

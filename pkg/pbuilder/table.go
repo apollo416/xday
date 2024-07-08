@@ -159,3 +159,22 @@ func listTables(dir string) []string {
 
 	return tables
 }
+
+func (t TableFunctionPermision) String() string {
+	str := "(Function: " + t.Function.Name
+	str += ", permissions: ["
+	str += strings.Join(t.Permisions, ", ")
+	str += "])"
+	return str
+}
+
+func (t Table) String() string {
+	str := "(Name: " + t.Name
+	str += ", Service: " + t.Service.Name
+	str += ", Permissions: ["
+	for _, p := range t.Permissions {
+		str += p.String()
+	}
+	str += "])"
+	return str
+}

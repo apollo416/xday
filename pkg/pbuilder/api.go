@@ -2,6 +2,7 @@ package pbuilder
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -14,16 +15,11 @@ type ApiMethod struct {
 }
 
 type Api struct {
-	Name    string
 	Service Service
 	Methods []ApiMethod
 }
 
 func (t Api) isValid() (bool, error) {
-	if t.Name == "" {
-		return false, errors.New("table name not defined")
-	}
-
 	if _, err := os.Stat(t.Service.SourcePath); os.IsNotExist(err) {
 		return false, errors.New("Service does not exist")
 	}
@@ -51,11 +47,6 @@ func (ab *apiBuilder) New() *apiBuilder {
 		Methods: []ApiMethod{},
 	}
 	ab.functionBuilder = NewFunctionBuilder(ab.data)
-	return ab
-}
-
-func (ab *apiBuilder) WithName(name string) *apiBuilder {
-	ab.api.Name = name
 	return ab
 }
 
@@ -97,4 +88,20 @@ func (ab *apiBuilder) loadMethods() {
 			ab.api.Methods = append(ab.api.Methods, ApiMethod{Function: f, Method: "POST"})
 		}
 	}
+}
+
+func (a *ApiMethod) String() string {
+	return fmt.Sprintf("(Function: %s, method: %s)", a.Function.Name, a.Method)
+}
+
+func (a *Api) String() string {
+	str := fmt.Sprintf("(Service: %s", a.Service.Name)
+	str += ", methods: ["
+	methods := []string{}
+	for _, m := range a.Methods {
+		methods = append(methods, m.String())
+	}
+	str += strings.Join(methods, ", ")
+	str += "])"
+	return str
 }

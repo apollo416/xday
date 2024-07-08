@@ -90,8 +90,10 @@ func listFunctions(dir string) []string {
 	return functions
 }
 
-// TODO: Verificar a necessidade de especificar um glob para pegar todos os arquivos do diretório
-// Atualmente retorna apenas o diretório
-// func (f Function) SourcePath() string {
-// 	return "." + string(filepath.Separator) + filepath.Join(f.Service.SourcePath(), f.Name)
-// }
+func (f Function) String() string {
+	str := "(Function: " + f.Name
+	str += ", service: " + f.Service
+	str += ", sourcePath: " + f.SourcePath
+	str += ")"
+	return str
+}

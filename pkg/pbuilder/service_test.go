@@ -71,3 +71,19 @@ func TestServiceBuilder(t *testing.T) {
 		t.Error("Expected panic")
 	}()
 }
+
+func TestServiceString(t *testing.T) {
+	sname := "testservice"
+	dir := getTestDataDirectory()
+	data := NewData(dir)
+
+	s := NewServiceBuilder(data).New().WithName(sname).Build()
+
+	expected := "(Service: testservice, functions: [(Function: test_func, service: "
+	expected += "testservice, sourcePath: /home/tarcisio/xday/pkg/pbuilder/testdata/services/testservice/test_func)], "
+	expected += "tables: [(Name: test_table, Service: testservice, Permissions: [(Function: test_func, permissions: [get, put])])])"
+
+	if s.String() != expected {
+		t.Errorf("Expected: %s, got: %s", expected, s.String())
+	}
+}

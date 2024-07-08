@@ -1,6 +1,9 @@
 package pbuilder
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 type Project struct {
 	Name     string
@@ -53,10 +56,27 @@ func (pb *projectBuilder) Build() Project {
 		s := sb.New().WithName(sname).Build()
 		pb.project.Services = append(pb.project.Services, s)
 
-		a := ab.New().WithService(s).WithName(s.Name).Build()
+		a := ab.New().WithService(s).Build()
 		pb.project.Apis = append(pb.project.Apis, a)
 	}
 
 	pb.created = true
 	return pb.project
+}
+
+func (p Project) String() string {
+	str := "(Project: " + p.Name
+	str += ", services: ["
+	services := []string{}
+	for _, s := range p.Services {
+		services = append(services, s.String())
+	}
+	str += strings.Join(services, ", ") + "], "
+	str += "apis: ["
+	apis := []string{}
+	for _, a := range p.Apis {
+		apis = append(apis, a.String())
+	}
+	str += strings.Join(apis, ", ") + "])"
+	return str
 }

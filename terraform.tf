@@ -48,7 +48,7 @@ resource "aws_lambda_function" "crops_crop_add" {
   publish                        = true
   reserved_concurrent_executions = -1
   architectures                  = ["arm64"]
-  source_code_hash               = "4fduVb8Bf7lucu9cXuGQdONPYr+s/f+m0EJgr8H8aqw="
+  source_code_hash               = "B9lXIj6/AzLRDZExoG01fipM/oQVKNQy1o8gmKFkfV0="
   role                           = aws_iam_role.crops_crop_add_role.arn
 }
 
@@ -197,6 +197,42 @@ resource "aws_dynamodb_table" "products" {
     name = "id"
     type = "S"
   }
+}
+
+resource "aws_api_gateway_rest_api" "crops" {
+  name = "crops"
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_resource" "crops" {
+  rest_api_id = aws_api_gateway_rest_api.crops.id
+  parent_id   = aws_api_gateway_rest_api.crops.root_resource_id
+  path_part   = "crops"
+}
+
+resource "aws_api_gateway_rest_api" "products" {
+  name = "products"
+
+  endpoint_configuration {
+    types = ["REGIONAL"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_api_gateway_resource" "crops" {
+  rest_api_id = aws_api_gateway_rest_api.crops.id
+  parent_id   = aws_api_gateway_rest_api.crops.root_resource_id
+  path_part   = "crops"
 }
 
 

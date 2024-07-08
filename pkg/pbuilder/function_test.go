@@ -84,3 +84,21 @@ func TestFunctionBuilder(t *testing.T) {
 		t.Errorf("Expected panic")
 	}()
 }
+
+func TestFunctionString(t *testing.T) {
+	fname := "test_func"
+	sname := "testservice"
+
+	dir := getTestDataDirectory()
+	data := NewData(dir)
+
+	fb := NewFunctionBuilder(data)
+
+	f := fb.New().WithService(sname).WithName(fname).Build()
+
+	expected := fmt.Sprintf("(Function: %s, service: %s, sourcePath: %s)", fname, sname, f.SourcePath)
+
+	if expected != f.String() {
+		t.Errorf("Expected %s, got %s", expected, f.String())
+	}
+}

@@ -11,9 +11,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
-// ! dyna.PutItem
-// ! api.POST 201
-// ! api.POST 500
+// ! crops.PutItem
+// ! api.POST crops 201
 
 type Item struct {
 	Year   int

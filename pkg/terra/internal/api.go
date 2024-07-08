@@ -1,6 +1,7 @@
 package internal
 
 import (
+	"github.com/apollo416/xday/pkg/pbuilder"
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
@@ -8,29 +9,42 @@ import (
 
 type api struct {
 	project *project
+	methods []*apiMethod
+	a       pbuilder.Api
 }
 
-func newApi(project *project) *api {
-	return &api{
+func newApi(project *project, a pbuilder.Api) *api {
+	ap := &api{
 		project: project,
+		methods: []*apiMethod{},
+		a:       a,
 	}
+
+	for _, method := range a.Methods {
+		m := &apiMethod{
+			api:      ap,
+			function: newFunction(project, method.Function),
+		}
+
+		ap.methods = append(ap.methods, m)
+	}
+
+	return ap
 }
 
 func (a *api) build() {
-	for _, service := range a.project.services {
-		api := a.project.body.AppendNewBlock("resource", []string{"aws_api_gateway_rest_api", service.s.Name})
-		api.Body().SetAttributeValue("name", cty.StringVal(service.s.Name))
-		api.Body().AppendNewline()
+	ap := a.project.body.AppendNewBlock("resource", []string{"aws_api_gateway_rest_api", a.a.Service.Name})
+	ap.Body().SetAttributeValue("name", cty.StringVal(a.a.Service.Name))
+	ap.Body().AppendNewline()
 
-		endpointConfig := api.Body().AppendNewBlock("endpoint_configuration", nil)
-		endpointConfig.Body().SetAttributeValue("types", cty.ListVal([]cty.Value{cty.StringVal("REGIONAL")}))
-		api.Body().AppendNewline()
+	endpointConfig := ap.Body().AppendNewBlock("endpoint_configuration", nil)
+	endpointConfig.Body().SetAttributeValue("types", cty.ListVal([]cty.Value{cty.StringVal("REGIONAL")}))
+	ap.Body().AppendNewline()
 
-		lifecycle := api.Body().AppendNewBlock("lifecycle", nil)
-		lifecycle.Body().SetAttributeValue("create_before_destroy", cty.True)
+	lifecycle := ap.Body().AppendNewBlock("lifecycle", nil)
+	lifecycle.Body().SetAttributeValue("create_before_destroy", cty.True)
 
-		a.project.body.AppendNewline()
-	}
+	a.project.body.AppendNewline()
 
 	// TODO: fazer direito
 	resource := a.project.body.AppendNewBlock("resource", []string{"aws_api_gateway_resource", "crops"})
@@ -59,8 +73,15 @@ func (a *api) build() {
 	})
 	resource.Body().SetAttributeValue("path_part", cty.StringVal("crops"))
 	a.project.body.AppendNewline()
+}
 
-	method := a.project.body.AppendNewBlock("resource", []string{"aws_api_gateway_method", "crops_post"})
+type apiMethod struct {
+	api      *api
+	function *function
+}
+
+func (m *apiMethod) build() {
+	method := m.api.project.body.AppendNewBlock("resource", []string{"aws_api_gateway_method", "crops_post"})
 	method.Body().SetAttributeTraversal("rest_api_id", hcl.Traversal{
 		hcl.TraverseRoot{
 			Name: "aws_api_gateway_rest_api",
@@ -85,9 +106,9 @@ func (a *api) build() {
 	})
 	method.Body().SetAttributeValue("http_method", cty.StringVal("POST"))
 	method.Body().SetAttributeValue("authorization", cty.StringVal("NONE"))
-	a.project.body.AppendNewline()
+	m.api.project.body.AppendNewline()
 
-	integration := a.project.body.AppendNewBlock("resource", []string{"aws_api_gateway_integration", "crops_post"})
+	integration := m.api.project.body.AppendNewBlock("resource", []string{"aws_api_gateway_integration", "crops_post"})
 	integration.Body().SetAttributeTraversal("rest_api_id", hcl.Traversal{
 		hcl.TraverseRoot{
 			Name: "aws_api_gateway_rest_api",
@@ -134,9 +155,9 @@ func (a *api) build() {
 			Name: "invoke_arn",
 		},
 	})
-	a.project.body.AppendNewline()
+	m.api.project.body.AppendNewline()
 
-	permission := a.project.body.AppendNewBlock("resource", []string{"aws_lambda_permission", "crops_post"})
+	permission := m.api.project.body.AppendNewBlock("resource", []string{"aws_lambda_permission", "crops_post"})
 	permission.Body().SetAttributeValue("statement_id", cty.StringVal("AllowExecution"+"_crops_post_"+"FromAPI"))
 	permission.Body().SetAttributeValue("action", cty.StringVal("lambda:InvokeFunction"))
 	permission.Body().SetAttributeTraversal("function_name", hcl.Traversal{
@@ -153,5 +174,5 @@ func (a *api) build() {
 	permission.Body().SetAttributeValue("principal", cty.StringVal("apigateway.amazonaws.com"))
 	lambdaIdentifier := "[aws_lambda_function.crops_crop_add]"
 	permission.Body().SetAttributeRaw("depends_on", hclwrite.TokensForIdentifier(lambdaIdentifier))
-	a.project.body.AppendNewline()
+	m.api.project.body.AppendNewline()
 }

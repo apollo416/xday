@@ -7,7 +7,6 @@ import (
 
 func TestApiBuilder(t *testing.T) {
 	sname := "testservice"
-	fname := "test_func"
 
 	dir := getTestDataDirectory()
 	data := NewData(dir)
@@ -15,7 +14,7 @@ func TestApiBuilder(t *testing.T) {
 	sb := NewServiceBuilder(data)
 	service := sb.New().WithName(sname).Build()
 
-	ab := NewApiBuilder(data).WithService(service).WithName(fname)
+	ab := NewApiBuilder(data).WithService(service)
 
 	func() {
 		defer func() {
@@ -28,7 +27,7 @@ func TestApiBuilder(t *testing.T) {
 	}()
 
 	// regular call
-	api := ab.New().WithService(service).WithName(fname).Build()
+	api := ab.New().WithService(service).Build()
 	t.Log("api: ", api)
 
 	func() {
@@ -51,4 +50,24 @@ func TestApiBuilder(t *testing.T) {
 		ab.New().Build()
 		t.Error("Expected panic")
 	}()
+}
+
+func TestApiString(t *testing.T) {
+	sname := "testservice"
+
+	dir := getTestDataDirectory()
+	data := NewData(dir)
+
+	sb := NewServiceBuilder(data)
+	service := sb.New().WithName(sname).Build()
+
+	ab := NewApiBuilder(data)
+
+	api := ab.New().WithService(service).Build()
+
+	expect := "(Service: testservice, methods: [(Function: test_func, method: POST)])"
+
+	if api.String() != expect {
+		t.Errorf("Expected %s, got %s", expect, api.String())
+	}
 }

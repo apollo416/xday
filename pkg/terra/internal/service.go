@@ -9,8 +9,8 @@ type service struct {
 	project   *project
 	functions []*function
 	tables    []*table
-
-	funcRefs map[string]*function
+	api       *api
+	funcRefs  map[string]*function
 }
 
 func newService(project *project, s pbuilder.Service) *service {
@@ -51,6 +51,10 @@ func (s *service) buildTables() {
 	for _, table := range s.tables {
 		table.build()
 	}
+}
+
+func (s *service) buildApi() {
+	s.api.build()
 }
 
 func (s *service) getFunctionByName(name string) (bool, *function) {
