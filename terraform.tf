@@ -96,6 +96,38 @@ data "aws_iam_policy_document" "crops_crop_get_role" {
   }
 }
 
+resource "aws_dynamodb_table" "crops" {
+  name           = "crops"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 5
+  write_capacity = 5
+  hash_key       = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+}
+
+data "aws_iam_policy_document" "crops_crops_crop_add_policy_document" {
+  statement {
+    effect  = "Allow"
+    actions = ["dynamodb:PutItem"]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_iam_role.crops_crop_add_role.arn]
+    }
+
+    resources = [aws_dynamodb_table.crops.arn]
+  }
+}
+
+resource "aws_dynamodb_resource_policy" "crops_crops_crop_add_policy" {
+  resource_arn = aws_dynamodb_table.crops.arn
+  policy       = data.aws_iam_policy_document.crops_crops_crop_add_policy_document.json
+}
+
 resource "aws_lambda_function" "products_product_get" {
   filename                       = "data/functions/products/product_get/bootstrap.zip"
   function_name                  = "products_product_get"
@@ -151,6 +183,19 @@ data "aws_iam_policy_document" "products_product_init_role" {
       type        = "Service"
       identifiers = ["lambda.amazonaws.com"]
     }
+  }
+}
+
+resource "aws_dynamodb_table" "products" {
+  name           = "products"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 5
+  write_capacity = 5
+  hash_key       = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
   }
 }
 

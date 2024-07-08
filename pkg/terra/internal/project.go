@@ -15,7 +15,7 @@ func project(root *hclwrite.Body, dataDir string, p pbuilder.Project) {
 		for _, table := range service.Tables {
 			t := newTable(dataDir, table)
 			_ = t
-			//t.createTable(root)
+			t.createTable(root)
 		}
 	}
 }

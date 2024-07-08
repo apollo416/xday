@@ -21,12 +21,17 @@ type TableFunctionPermision struct {
 
 type Table struct {
 	Name        string
+	Service     Service
 	Permissions []TableFunctionPermision
 }
 
 func (t Table) isValid() (bool, error) {
 	if t.Name == "" {
 		return false, errors.New("table name not defined")
+	}
+
+	if _, err := os.Stat(t.Service.SourcePath); os.IsNotExist(err) {
+		return false, errors.New("Service does not exist")
 	}
 	return true, nil
 }
@@ -60,6 +65,11 @@ func (tb *tableBuilder) WithName(name string) *tableBuilder {
 	return tb
 }
 
+func (tb *tableBuilder) WithService(service Service) *tableBuilder {
+	tb.table.Service = service
+	return tb
+}
+
 func (tb *tableBuilder) WithPermission(f Function, p []string) *tableBuilder {
 	tb.table.Permissions = append(tb.table.Permissions, TableFunctionPermision{Function: f, Permisions: p})
 	return tb
@@ -85,32 +95,30 @@ func (tb *tableBuilder) Build() Table {
 }
 
 func (tb *tableBuilder) loadTablePermissions() {
-	services := listServices(tb.data.ServicesDir)
-	for _, sname := range services {
-		sdir := filepath.Join(tb.data.ServicesDir, sname)
-		functions := listFunctions(sdir)
-		for _, fname := range functions {
-			f := tb.functionBuilder.New().WithService(sname).WithName(fname).Build()
-			read, err := os.ReadFile(filepath.Join(f.SourcePath, "main.go"))
-			if err != nil {
-				panic(err)
-			}
 
-			permissions := []string{}
-
-			if strings.Contains(string(read), "dyna.GetItem") {
-				permissions = append(permissions, "get")
-			}
-
-			if strings.Contains(string(read), "dyna.PutItem") {
-				permissions = append(permissions, "put")
-			}
-
-			if len(permissions) > 0 {
-				tb.WithPermission(f, permissions)
-			}
-
+	functions := listFunctions(tb.table.Service.SourcePath)
+	for _, fname := range functions {
+		f := tb.functionBuilder.New().WithService(tb.table.Service.Name).WithName(fname).Build()
+		read, err := os.ReadFile(filepath.Join(f.SourcePath, "main.go"))
+		if err != nil {
+			// TODO: add description to error
+			log.Fatal(err)
 		}
+
+		permissions := []string{}
+
+		if strings.Contains(string(read), "dyna.GetItem") {
+			permissions = append(permissions, "get")
+		}
+
+		if strings.Contains(string(read), "dyna.PutItem") {
+			permissions = append(permissions, "put")
+		}
+
+		if len(permissions) > 0 {
+			tb.WithPermission(f, permissions)
+		}
+
 	}
 }
 
@@ -119,11 +127,13 @@ func listTables(dir string) []string {
 
 	filename := filepath.Join(dir, tablesFileName)
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		return tables
+		// TODO: add description to error
+		log.Fatal(err)
 	}
 
 	jsonFile, err := os.Open(filename)
 	if err != nil {
+		// TODO: add description to error
 		log.Fatal(err)
 	}
 
@@ -135,6 +145,7 @@ func listTables(dir string) []string {
 
 	byteValue, err := io.ReadAll(jsonFile)
 	if err != nil {
+		// TODO: add description to error
 		log.Fatal(err)
 	}
 

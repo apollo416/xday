@@ -6,12 +6,15 @@ import (
 )
 
 func TestTableBuilder(t *testing.T) {
+	sname := "testservice"
 	tname := "products"
 
 	dir := getTestDataDirectory()
 	data := NewData(dir)
 
-	tb := NewTableBuilder(data).WithName(tname)
+	sb := NewServiceBuilder(data)
+	service := sb.New().WithName(sname).Build()
+	tb := NewTableBuilder(data).WithService(service).WithName(tname)
 
 	func() {
 		defer func() {
@@ -24,7 +27,7 @@ func TestTableBuilder(t *testing.T) {
 	}()
 
 	// regular call
-	table := tb.New().WithName(tname).Build()
+	table := tb.New().WithService(service).WithName(tname).Build()
 	t.Log("table: ", table)
 
 	func() {

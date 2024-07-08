@@ -79,7 +79,7 @@ func (sb *serviceBuilder) Build() Service {
 
 	tables := listTables(sb.service.SourcePath)
 	for _, tname := range tables {
-		t := NewTableBuilder(sb.data).New().WithName(tname).Build()
+		t := NewTableBuilder(sb.data).New().WithService(sb.service).WithName(tname).Build()
 		sb.service.Tables = append(sb.service.Tables, t)
 	}
 

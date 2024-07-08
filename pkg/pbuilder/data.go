@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	dataDir         = "./data"
 	servicesDir     = "./services"
 	functionDataDir = "./data/functions"
 )
@@ -18,6 +19,7 @@ type Data struct {
 
 func NewData(basePath string) Data {
 	return Data{
+		DataDir:         filepath.Join(basePath, dataDir),
 		ServicesDir:     filepath.Join(basePath, servicesDir),
 		FunctionDataDir: filepath.Join(basePath, functionDataDir),
 	}
