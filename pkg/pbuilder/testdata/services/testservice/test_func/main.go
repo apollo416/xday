@@ -11,6 +11,10 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
+// ! dyna.PutItem
+// ! api.POST 201
+// ! api.POST 500
+
 type Item struct {
 	Year   int
 	Title  string

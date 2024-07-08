@@ -5,9 +5,9 @@ import (
 	"testing"
 )
 
-func TestTableBuilder(t *testing.T) {
+func TestApiBuilder(t *testing.T) {
 	sname := "testservice"
-	tname := "products"
+	fname := "test_func"
 
 	dir := getTestDataDirectory()
 	data := NewData(dir)
@@ -15,7 +15,7 @@ func TestTableBuilder(t *testing.T) {
 	sb := NewServiceBuilder(data)
 	service := sb.New().WithName(sname).Build()
 
-	tb := NewTableBuilder(data).WithService(service).WithName(tname)
+	ab := NewApiBuilder(data).WithService(service).WithName(fname)
 
 	func() {
 		defer func() {
@@ -23,21 +23,21 @@ func TestTableBuilder(t *testing.T) {
 				fmt.Println("Recovered in f", r)
 			}
 		}()
-		tb.Build()
+		ab.Build()
 		t.Error("Expected panic")
 	}()
 
 	// regular call
-	table := tb.New().WithService(service).WithName(tname).Build()
-	t.Log("table: ", table)
+	api := ab.New().WithService(service).WithName(fname).Build()
+	t.Log("api: ", api)
 
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				fmt.Println("Recovered in f", r)
+				fmt.Println("Recovered in api", r)
 			}
 		}()
-		tb.Build()
+		ab.Build()
 		t.Error("Expected panic")
 	}()
 
@@ -48,7 +48,7 @@ func TestTableBuilder(t *testing.T) {
 			}
 		}()
 		// Build without name
-		tb.New().Build()
+		ab.New().Build()
 		t.Error("Expected panic")
 	}()
 }

@@ -5,6 +5,7 @@ import "errors"
 type Project struct {
 	Name     string
 	Services []Service
+	Apis     []Api
 }
 
 func (p Project) isValid() (bool, error) {
@@ -47,9 +48,13 @@ func (pb *projectBuilder) Build() Project {
 
 	services := listServices(pb.data.ServicesDir)
 	sb := NewServiceBuilder(pb.data)
+	ab := NewApiBuilder(pb.data)
 	for _, sname := range services {
 		s := sb.New().WithName(sname).Build()
 		pb.project.Services = append(pb.project.Services, s)
+
+		a := ab.New().WithService(s).WithName(s.Name).Build()
+		pb.project.Apis = append(pb.project.Apis, a)
 	}
 
 	pb.created = true

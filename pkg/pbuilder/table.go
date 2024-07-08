@@ -95,7 +95,6 @@ func (tb *tableBuilder) Build() Table {
 }
 
 func (tb *tableBuilder) loadTablePermissions() {
-
 	functions := listFunctions(tb.table.Service.SourcePath)
 	for _, fname := range functions {
 		f := tb.functionBuilder.New().WithService(tb.table.Service.Name).WithName(fname).Build()
