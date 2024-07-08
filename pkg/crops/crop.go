@@ -7,12 +7,12 @@ import (
 )
 
 type Crop struct {
-	Id             uuid.UUID `json:"id"`
-	Status         string    `json:"status"`
-	Cultivar       uuid.UUID `json:"cultivar"`
-	CultivarStart  time.Time `json:"cultivar_start"`
-	CultivarEnd    time.Time `json:"cultivar_end"`
-	MaturationTime int       `json:"maturation_time"`
-	Created        time.Time `json:"created"`
-	Generation     int       `json:"generation"`
+	ID             uuid.UUID `json:"id" dynamodbav:"id"`
+	Status         string    `json:"status" dynamodbav:"status"`
+	Cultivar       uuid.UUID `json:"cultivar" dynamodbav:"cultivar"`
+	CultivarStart  time.Time `json:"cultivar_start" dynamodbav:"cultivar_start"`
+	CultivarEnd    time.Time `json:"cultivar_end" dynamodbav:"cultivar_end"`
+	MaturationTime int       `json:"maturation_time" dynamodbav:"maturation_time"`
+	Created        time.Time `json:"created" dynamodbav:"created"`
+	Generation     int       `json:"generation" dynamodbav:"generation"`
 }

@@ -1,7 +1,9 @@
 package crops
 
+import "github.com/google/uuid"
+
 type CropsDatastore interface {
-	Get(id string) (Crop, error)
+	Get(id uuid.UUID) (Crop, error)
 	Put(c Crop) error
 	Update(c Crop) error
 }

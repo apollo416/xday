@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"time"
 
 	"github.com/apollo416/xday/pkg/crops"
@@ -16,7 +17,7 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 	service := getService()
 
 	crop := crops.Crop{
-		Id:      uuid.New(),
+		ID:      uuid.New(),
 		Created: time.Now(),
 	}
 
@@ -24,7 +25,12 @@ func handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 		return events.APIGatewayProxyResponse{Body: request.Body, StatusCode: 500}, err
 	}
 
-	return events.APIGatewayProxyResponse{Body: request.Body, StatusCode: 201}, nil
+	body, err := json.Marshal(crop)
+	if err != nil {
+		return events.APIGatewayProxyResponse{Body: request.Body, StatusCode: 500}, err
+	}
+
+	return events.APIGatewayProxyResponse{Body: string(body), StatusCode: 201}, nil
 }
 
 func main() {

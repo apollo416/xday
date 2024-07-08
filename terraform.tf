@@ -48,7 +48,7 @@ resource "aws_lambda_function" "crops_crop_add" {
   publish                        = true
   reserved_concurrent_executions = -1
   architectures                  = ["arm64"]
-  source_code_hash               = "1YsqZtO745Z9kNyJjsJGCssdNvZJjdD/Y1luJn7Y1YI="
+  source_code_hash               = "4fduVb8Bf7lucu9cXuGQdONPYr+s/f+m0EJgr8H8aqw="
   role                           = aws_iam_role.crops_crop_add_role.arn
 }
 
