@@ -1,34 +1,36 @@
 package module
 
-import (
-	"log"
-	"os"
-	"path/filepath"
-)
+// const (
+// 	ServicesDir = "./services"
+// )
 
-const (
-	ServicesDir = "./services"
-)
+// type Service struct {
+// 	Name      string
+// 	Tables    []Table
+// 	Functions []Function
+// }
 
-type Service struct {
-	Name string
-}
+// func (s Service) SourcePath() string {
+// 	return "." + string(filepath.Separator) + filepath.Join(ServicesDir, s.Name)
+// }
 
-func (s Service) SourcePath() string {
-	return "." + string(filepath.Separator) + filepath.Join(ServicesDir, s.Name)
-}
+// func LoadService(s string) Service {
+// 	service := Service{Name: s}
+// 	service.Tables = loadServiceTables(service)
+// 	service.Functions = loadServiceFunctions(service)
+// 	return service
+// }
 
-// This function list all folders inside the services directory
-func ListServices() []Service {
-	services := []Service{}
-	entries, err := os.ReadDir(ServicesDir)
-	if err != nil {
-		log.Fatal(err)
-	}
+// func ListServices() []string {
+// 	services := []string{}
+// 	entries, err := os.ReadDir(ServicesDir)
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
 
-	for _, e := range entries {
-		services = append(services, Service{Name: e.Name()})
-	}
+// 	for _, e := range entries {
+// 		services = append(services, e.Name())
+// 	}
 
-	return services
-}
+// 	return services
+// }

@@ -1,6 +1,9 @@
 terraform.tfvars
 .terraform
 
+data/functions/products/product_get/bootstrap
+data/functions/products/product_init/bootstrap
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

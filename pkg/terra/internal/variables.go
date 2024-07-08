@@ -1,11 +1,11 @@
-package main
+package internal
 
 import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
 )
 
-func rootVariables(root *hclwrite.Body) {
+func variables(root *hclwrite.Body) {
 	variable := root.AppendNewBlock("variable", []string{"workspace_iam_role"})
 	variableBody := variable.Body()
 	variableBody.SetAttributeRaw(
