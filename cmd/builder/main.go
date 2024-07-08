@@ -14,8 +14,10 @@ func main() {
 	p := pb.New().WithName("xday").Build()
 
 	config := terra.TerraConfig{
-		Project: p,
-		DataDir: "./data",
+		Project:      p,
+		DataDir:      "./data",
+		S3Name:       "tf-state-hday",
+		DynamoDBName: "terraform_state",
 	}
 
 	t := terra.New(config)

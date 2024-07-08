@@ -10,8 +10,10 @@ import (
 )
 
 type TerraConfig struct {
-	Project pbuilder.Project
-	DataDir string
+	Project      pbuilder.Project
+	DataDir      string
+	S3Name       string
+	DynamoDBName string
 }
 
 func (tc TerraConfig) isValid() (bool, error) {
@@ -38,7 +40,13 @@ func New(tc TerraConfig) *Terra {
 }
 
 func (t *Terra) Build() {
-	t.hcl = internal.Main(t.TerraConfig.DataDir, t.TerraConfig.Project)
+	t.hcl = internal.Main(
+		t.TerraConfig.DataDir,
+		t.TerraConfig.Project.Name,
+		t.TerraConfig.S3Name,
+		t.TerraConfig.DynamoDBName,
+		t.TerraConfig.Project,
+	)
 }
 
 func (t *Terra) String() string {

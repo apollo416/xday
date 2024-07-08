@@ -5,11 +5,11 @@ import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
 )
 
-func Main(dataDir string, p pbuilder.Project) *hclwrite.File {
+func Main(dataDir string, projectName, s3Name, dynamodbName string, p pbuilder.Project) *hclwrite.File {
 	hclFile := hclwrite.NewEmptyFile()
 	variables(hclFile.Body())
-	provider(hclFile.Body())
-	terraform(hclFile.Body())
+	provider(hclFile.Body(), projectName)
+	terraform(hclFile.Body(), s3Name, dynamodbName)
 
 	project(hclFile.Body(), dataDir, p)
 
