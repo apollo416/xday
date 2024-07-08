@@ -18,4 +18,6 @@ func project(root *hclwrite.Body, dataDir string, p pbuilder.Project) {
 			t.createTable(root)
 		}
 	}
+
+	createApi(root, p)
 }

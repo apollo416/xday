@@ -9,13 +9,11 @@ import (
 
 func provider(root *hclwrite.Body, project string) {
 	providerAWS := root.AppendNewBlock("provider", []string{"aws"})
-	providerAWSBody := providerAWS.Body()
-	providerAWSBody.SetAttributeValue("region", cty.StringVal("us-east-1"))
-	providerAWSBody.AppendNewline()
+	providerAWS.Body().SetAttributeValue("region", cty.StringVal("us-east-1"))
+	providerAWS.Body().AppendNewline()
 
-	assumeRole := providerAWSBody.AppendNewBlock("assume_role", nil)
-	assumeRoleBody := assumeRole.Body()
-	assumeRoleBody.SetAttributeTraversal("role_arn", hcl.Traversal{
+	assumeRole := providerAWS.Body().AppendNewBlock("assume_role", nil)
+	assumeRole.Body().SetAttributeTraversal("role_arn", hcl.Traversal{
 		hcl.TraverseRoot{
 			Name: "var",
 		},
@@ -23,9 +21,9 @@ func provider(root *hclwrite.Body, project string) {
 			Name: "workspace_iam_role",
 		},
 	})
-	providerAWSBody.AppendNewline()
+	providerAWS.Body().AppendNewline()
 
-	defaultTags := providerAWSBody.AppendNewBlock("default_tags", nil)
+	defaultTags := providerAWS.Body().AppendNewBlock("default_tags", nil)
 	defaultTagsBody := defaultTags.Body()
 
 	tokens := []*hclwrite.Token{}
@@ -54,9 +52,3 @@ func provider(root *hclwrite.Body, project string) {
 	defaultTagsBody.SetAttributeRaw("tags", tokens)
 	root.AppendNewline()
 }
-
-// backend "s3" {
-//     bucket = "mybucket"
-//     key    = "path/to/my/key"
-//     region = "us-east-1"
-//   }
