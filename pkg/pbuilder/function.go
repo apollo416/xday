@@ -95,11 +95,3 @@ func listFunctions(dir string) []string {
 // func (f Function) SourcePath() string {
 // 	return "." + string(filepath.Separator) + filepath.Join(f.Service.SourcePath(), f.Name)
 // }
-
-// func (f Function) BinaryPath() string {
-// 	return "." + string(filepath.Separator) + filepath.Join(mdata.FunctionDataDir, f.Service.Name, f.Name, functionHandlerName)
-// }
-
-// func (f Function) ZipPath() string {
-// 	return f.BinaryPath() + ".zip"
-// }

@@ -41,14 +41,14 @@ terraform {
 resource "aws_lambda_function" "crops_crop_add" {
   filename                       = "data/functions/crops/crop_add/bootstrap.zip"
   function_name                  = "crops_crop_add"
-  runtime                        = "python3.12"
+  runtime                        = "provided.al2023"
   handler                        = "bootstrap"
   timeout                        = 10
   memory_size                    = 128
   publish                        = true
   reserved_concurrent_executions = -1
   architectures                  = ["arm64"]
-  source_code_hash               = "p85k2hpl51PgJdCW9ZE/r1JBjizTLIL5MlTkWk8udlE="
+  source_code_hash               = "1YsqZtO745Z9kNyJjsJGCssdNvZJjdD/Y1luJn7Y1YI="
   role                           = aws_iam_role.crops_crop_add_role.arn
 }
 
@@ -70,14 +70,14 @@ data "aws_iam_policy_document" "crops_crop_add_role" {
 resource "aws_lambda_function" "crops_crop_get" {
   filename                       = "data/functions/crops/crop_get/bootstrap.zip"
   function_name                  = "crops_crop_get"
-  runtime                        = "python3.12"
+  runtime                        = "provided.al2023"
   handler                        = "bootstrap"
   timeout                        = 10
   memory_size                    = 128
   publish                        = true
   reserved_concurrent_executions = -1
   architectures                  = ["arm64"]
-  source_code_hash               = "7TAak3Vv/s92tlG9h9p1Xc5nA8JMSIonCaVA14rv1To="
+  source_code_hash               = "zGnaCyXOV0cbREm9SXJ8ph4fx5v6Uis/MSaAT3VnNFA="
   role                           = aws_iam_role.crops_crop_get_role.arn
 }
 
@@ -99,14 +99,14 @@ data "aws_iam_policy_document" "crops_crop_get_role" {
 resource "aws_lambda_function" "products_product_get" {
   filename                       = "data/functions/products/product_get/bootstrap.zip"
   function_name                  = "products_product_get"
-  runtime                        = "python3.12"
+  runtime                        = "provided.al2023"
   handler                        = "bootstrap"
   timeout                        = 10
   memory_size                    = 128
   publish                        = true
   reserved_concurrent_executions = -1
   architectures                  = ["arm64"]
-  source_code_hash               = "wDoibJ1wkU5X1+OL6A7DUyEFq/FJBBsZpIRNyhEQIWY="
+  source_code_hash               = "SZPnDrxKTUnavLEmR6GYnVPx/cZyKZCxN1vZMtTapHw="
   role                           = aws_iam_role.products_product_get_role.arn
 }
 
@@ -128,14 +128,14 @@ data "aws_iam_policy_document" "products_product_get_role" {
 resource "aws_lambda_function" "products_product_init" {
   filename                       = "data/functions/products/product_init/bootstrap.zip"
   function_name                  = "products_product_init"
-  runtime                        = "python3.12"
+  runtime                        = "provided.al2023"
   handler                        = "bootstrap"
   timeout                        = 10
   memory_size                    = 128
   publish                        = true
   reserved_concurrent_executions = -1
   architectures                  = ["arm64"]
-  source_code_hash               = "UAGNSEE2JN5ceW8OcX+iSHrnmFtJDAbT5xdip+5Qmq4="
+  source_code_hash               = "m1qPfmGAiVib2s2f3Kf0ptdgL7L2tXnHDDo8AwnnKaI="
   role                           = aws_iam_role.products_product_init_role.arn
 }
 

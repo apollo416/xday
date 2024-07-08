@@ -73,7 +73,7 @@ func (f function) createHCL(root *hclwrite.Body) {
 	functionBody := function.Body()
 	functionBody.SetAttributeValue("filename", cty.StringVal(f.ZipPath()))
 	functionBody.SetAttributeValue("function_name", cty.StringVal(f.LambdaName()))
-	functionBody.SetAttributeValue("runtime", cty.StringVal("python3.12"))
+	functionBody.SetAttributeValue("runtime", cty.StringVal("provided.al2023"))
 	functionBody.SetAttributeValue("handler", cty.StringVal(functionHandlerName))
 	functionBody.SetAttributeValue("timeout", cty.NumberIntVal(10))
 	functionBody.SetAttributeValue("memory_size", cty.NumberIntVal(128))
@@ -130,7 +130,18 @@ func (f function) createHCL(root *hclwrite.Body) {
 }
 
 func (f function) buildFunction() {
-	cmd := exec.Command("go", "build", "-o", f.BinaryPath(), "-trimpath", "-ldflags=-buildid=", f.SourcePath())
+	// GOOS=linux GOARCH=arm64 CGO_ENABLED=0
+	cmd := exec.Command(
+		"go",
+		"build",
+		"-o", f.BinaryPath(),
+		"-trimpath",
+		"-buildvcs=false",
+		"-ldflags=-s -w -buildid=",
+		"-tags",
+		"lambda.norpc",
+		f.SourcePath())
+	cmd.Env = append(os.Environ(), "GOOS=linux", "GOARCH=arm64", "CGO_ENABLED=0")
 	bytes, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Fatalf("Failed to build function: %v", string(bytes))

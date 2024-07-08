@@ -1,14 +1,21 @@
 package pbuilder
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
+const (
+	tablesFileName = "tables.json"
+)
+
 type TableFunctionPermision struct {
-	Function   string
+	Function   Function
 	Permisions []string
 }
 
@@ -25,10 +32,11 @@ func (t Table) isValid() (bool, error) {
 }
 
 type tableBuilder struct {
-	data    Data
-	table   Table
-	created bool
-	withNew bool
+	data            Data
+	table           Table
+	functionBuilder *functionBuilder
+	created         bool
+	withNew         bool
 }
 
 func NewTableBuilder(data Data) *tableBuilder {
@@ -40,6 +48,7 @@ func NewTableBuilder(data Data) *tableBuilder {
 func (tb *tableBuilder) New() *tableBuilder {
 	tb.withNew = true
 	tb.created = false
+	tb.functionBuilder = NewFunctionBuilder(tb.data)
 	tb.table = Table{
 		Permissions: []TableFunctionPermision{},
 	}
@@ -51,7 +60,7 @@ func (tb *tableBuilder) WithName(name string) *tableBuilder {
 	return tb
 }
 
-func (tb *tableBuilder) WithPermission(f string, p []string) *tableBuilder {
+func (tb *tableBuilder) WithPermission(f Function, p []string) *tableBuilder {
 	tb.table.Permissions = append(tb.table.Permissions, TableFunctionPermision{Function: f, Permisions: p})
 	return tb
 }
@@ -81,8 +90,8 @@ func (tb *tableBuilder) loadTablePermissions() {
 		sdir := filepath.Join(tb.data.ServicesDir, sname)
 		functions := listFunctions(sdir)
 		for _, fname := range functions {
-			cname := filepath.Join(sdir, fname, "main.go")
-			read, err := os.ReadFile(cname)
+			f := tb.functionBuilder.New().WithService(sname).WithName(fname).Build()
+			read, err := os.ReadFile(filepath.Join(f.SourcePath, "main.go"))
 			if err != nil {
 				panic(err)
 			}
@@ -98,9 +107,45 @@ func (tb *tableBuilder) loadTablePermissions() {
 			}
 
 			if len(permissions) > 0 {
-				tb.WithPermission(fname, permissions)
+				tb.WithPermission(f, permissions)
 			}
 
 		}
 	}
+}
+
+func listTables(dir string) []string {
+	tables := []string{}
+
+	filename := filepath.Join(dir, tablesFileName)
+	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		return tables
+	}
+
+	jsonFile, err := os.Open(filename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer func() {
+		if err := jsonFile.Close(); err != nil {
+			log.Fatalf("Failed to close file: %v", err)
+		}
+	}()
+
+	byteValue, err := io.ReadAll(jsonFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var jtables []struct {
+		Name string `json:"name"`
+	}
+
+	json.Unmarshal(byteValue, &jtables)
+	for _, t := range jtables {
+		tables = append(tables, t.Name)
+	}
+
+	return tables
 }

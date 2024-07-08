@@ -27,10 +27,11 @@ func (s Service) isValid() (bool, error) {
 }
 
 type serviceBuilder struct {
-	data    Data
-	service Service
-	created bool
-	withNew bool
+	data            Data
+	service         Service
+	functionBuilder *functionBuilder
+	created         bool
+	withNew         bool
 }
 
 func NewServiceBuilder(data Data) *serviceBuilder {
@@ -42,6 +43,7 @@ func NewServiceBuilder(data Data) *serviceBuilder {
 func (sb *serviceBuilder) New() *serviceBuilder {
 	sb.withNew = true
 	sb.created = false
+	sb.functionBuilder = NewFunctionBuilder(sb.data)
 	sb.service = Service{
 		Functions: []Function{},
 		Tables:    []Table{},
@@ -70,10 +72,15 @@ func (sb *serviceBuilder) Build() Service {
 	}
 
 	functions := listFunctions(sb.service.SourcePath)
-	fb := NewFunctionBuilder(sb.data)
 	for _, fname := range functions {
-		f := fb.New().WithService(sb.service.Name).WithName(fname).Build()
+		f := sb.functionBuilder.New().WithService(sb.service.Name).WithName(fname).Build()
 		sb.service.Functions = append(sb.service.Functions, f)
+	}
+
+	tables := listTables(sb.service.SourcePath)
+	for _, tname := range tables {
+		t := NewTableBuilder(sb.data).New().WithName(tname).Build()
+		sb.service.Tables = append(sb.service.Tables, t)
 	}
 
 	sb.created = true
