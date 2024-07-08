@@ -65,7 +65,7 @@ func (f function) createFunction(root *hclwrite.Body) {
 	f.buildFunction()
 	f.zip()
 	f.createHCL(root)
-	//f.clean()
+	f.clean()
 }
 
 func (f function) createHCL(root *hclwrite.Body) {
@@ -130,7 +130,7 @@ func (f function) createHCL(root *hclwrite.Body) {
 }
 
 func (f function) buildFunction() {
-	cmd := exec.Command("go", "build", "-o", f.BinaryPath(), f.SourcePath())
+	cmd := exec.Command("go", "build", "-o", f.BinaryPath(), "-trimpath", "-ldflags=-buildid=", f.SourcePath())
 	bytes, err := cmd.CombinedOutput()
 	if err != nil {
 		log.Fatalf("Failed to build function: %v", string(bytes))
