@@ -5,19 +5,36 @@ import (
 	"github.com/hashicorp/hcl/v2/hclwrite"
 )
 
-func project(root *hclwrite.Body, dataDir string, p pbuilder.Project) {
-	for _, service := range p.Services {
-		for _, function := range service.Functions {
-			f := newFunction(dataDir, function)
-			f.createFunction(root)
-		}
+type project struct {
+	p        pbuilder.Project
+	dataDir  string
+	body     *hclwrite.Body
+	apis     []*api
+	services []*service
+}
 
-		for _, table := range service.Tables {
-			t := newTable(dataDir, table)
-			_ = t
-			t.createTable(root)
-		}
+func newProject(body *hclwrite.Body, dataDir string, p pbuilder.Project) *project {
+	project := &project{
+		p:        p,
+		dataDir:  dataDir,
+		body:     body,
+		services: []*service{},
+		apis:     []*api{},
 	}
 
-	createApi(root, p)
+	for _, service := range project.p.Services {
+		s := newService(project, service)
+		project.services = append(project.services, s)
+
+		api := newApi(project)
+		project.apis = append(project.apis, api)
+	}
+
+	return project
+}
+
+func (p *project) build() {
+	for _, s := range p.services {
+		s.build()
+	}
 }

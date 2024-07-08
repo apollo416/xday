@@ -10,7 +10,6 @@ import (
 
 	"github.com/apollo416/xday/pkg/pbuilder"
 	"github.com/hashicorp/hcl/v2"
-	"github.com/hashicorp/hcl/v2/hclwrite"
 	"github.com/zclconf/go-cty/cty"
 )
 
@@ -20,121 +19,63 @@ const (
 )
 
 type function struct {
-	dataDir  string
-	function pbuilder.Function
+	project *project
+	f       pbuilder.Function
 }
 
-func newFunction(dataDir string, f pbuilder.Function) function {
-	return function{
-		dataDir:  dataDir,
-		function: f,
+func newFunction(project *project, f pbuilder.Function) *function {
+	return &function{
+		project: project,
+		f:       f,
 	}
 }
 
-func (f function) LambdaName() string {
-	return f.function.Service + "_" + f.function.Name
+func (f *function) lambdaName() string {
+	return f.f.Service + "_" + f.f.Name
 }
 
-func (f function) LambdaRoleName() string {
-	return f.LambdaName() + "_role"
+func (f *function) lambdaRoleName() string {
+	return f.lambdaName() + "_role"
 }
 
-func (f function) BinaryPath() string {
+func (f *function) binaryPath() string {
 	return filepath.Join(
-		f.dataDir,
+		f.project.dataDir,
 		dataFunctionsDir,
-		f.function.Service,
-		f.function.Name,
+		f.f.Service,
+		f.f.Name,
 		functionHandlerName)
 }
 
-func (f function) ZipPath() string {
+func (f *function) zipPath() string {
 	return filepath.Join(
-		f.dataDir,
+		f.project.dataDir,
 		dataFunctionsDir,
-		f.function.Service,
-		f.function.Name,
+		f.f.Service,
+		f.f.Name,
 		functionHandlerName+".zip")
 }
 
-func (f function) SourcePath() string {
-	return f.function.SourcePath
+func (f *function) SourcePath() string {
+	return f.f.SourcePath
 }
 
-func (f function) createFunction(root *hclwrite.Body) {
+func (f *function) fileBase64SHA256() string {
+	return filebase64sha256(f.binaryPath())
+}
+
+func (f *function) build() {
 	f.buildFunction()
 	f.zip()
-	f.createHCL(root)
+	f.createHCL()
 	f.clean()
 }
 
-func (f function) createHCL(root *hclwrite.Body) {
-	function := root.AppendNewBlock("resource", []string{"aws_lambda_function", f.LambdaName()})
-	functionBody := function.Body()
-	functionBody.SetAttributeValue("filename", cty.StringVal(f.ZipPath()))
-	functionBody.SetAttributeValue("function_name", cty.StringVal(f.LambdaName()))
-	functionBody.SetAttributeValue("runtime", cty.StringVal("provided.al2023"))
-	functionBody.SetAttributeValue("handler", cty.StringVal(functionHandlerName))
-	functionBody.SetAttributeValue("timeout", cty.NumberIntVal(10))
-	functionBody.SetAttributeValue("memory_size", cty.NumberIntVal(128))
-	functionBody.SetAttributeValue("publish", cty.True)
-	functionBody.SetAttributeValue("reserved_concurrent_executions", cty.NumberIntVal(-1))
-	functionBody.SetAttributeValue("architectures", cty.ListVal([]cty.Value{cty.StringVal("arm64")}))
-	functionBody.SetAttributeValue("source_code_hash", cty.StringVal(f.fileBase64SHA256()))
-
-	functionBody.SetAttributeTraversal("role", hcl.Traversal{
-		hcl.TraverseRoot{
-			Name: "aws_iam_role",
-		},
-		hcl.TraverseAttr{
-			Name: f.LambdaRoleName(),
-		},
-		hcl.TraverseAttr{
-			Name: "arn",
-		},
-	})
-	root.AppendNewline()
-
-	role := root.AppendNewBlock("resource", []string{"aws_iam_role", f.LambdaRoleName()})
-	roleBody := role.Body()
-	roleBody.SetAttributeValue("name", cty.StringVal(f.LambdaRoleName()))
-	roleBody.SetAttributeTraversal("assume_role_policy", hcl.Traversal{
-		hcl.TraverseRoot{
-			Name: "data",
-		},
-		hcl.TraverseAttr{
-			Name: "aws_iam_policy_document",
-		},
-		hcl.TraverseAttr{
-			Name: f.LambdaRoleName(),
-		},
-		hcl.TraverseAttr{
-			Name: "json",
-		},
-	})
-	root.AppendNewline()
-
-	data := root.AppendNewBlock("data", []string{"aws_iam_policy_document", f.LambdaRoleName()})
-	dataBody := data.Body()
-
-	statement := dataBody.AppendNewBlock("statement", nil)
-	statementBody := statement.Body()
-	statementBody.SetAttributeValue("actions", cty.ListVal([]cty.Value{cty.StringVal("sts:AssumeRole")}))
-
-	principals := statementBody.AppendNewBlock("principals", nil)
-	principalsBody := principals.Body()
-	principalsBody.SetAttributeValue("type", cty.StringVal("Service"))
-	principalsBody.SetAttributeValue("identifiers", cty.ListVal([]cty.Value{cty.StringVal("lambda.amazonaws.com")}))
-
-	root.AppendNewline()
-}
-
-func (f function) buildFunction() {
-	// GOOS=linux GOARCH=arm64 CGO_ENABLED=0
+func (f *function) buildFunction() {
 	cmd := exec.Command(
 		"go",
 		"build",
-		"-o", f.BinaryPath(),
+		"-o", f.binaryPath(),
 		"-trimpath",
 		"-buildvcs=false",
 		"-ldflags=-s -w -buildid=",
@@ -148,8 +89,8 @@ func (f function) buildFunction() {
 	}
 }
 
-func (f function) zip() {
-	archive, err := os.Create(f.ZipPath())
+func (f *function) zip() {
+	archive, err := os.Create(f.zipPath())
 	if err != nil {
 		log.Fatalf("Failed to create archive: %v", err)
 	}
@@ -167,7 +108,7 @@ func (f function) zip() {
 		}
 	}()
 
-	bootstrap, err := os.Open(f.BinaryPath())
+	bootstrap, err := os.Open(f.binaryPath())
 	if err != nil {
 		log.Fatalf("Failed to open bootstrap: %v", err)
 	}
@@ -188,12 +129,64 @@ func (f function) zip() {
 	}
 }
 
-func (f function) clean() {
-	if err := os.Remove(f.BinaryPath()); err != nil {
-		log.Fatalf("Failed to remove binary: %v", err)
-	}
+func (f *function) createHCL() {
+	function := f.project.body.AppendNewBlock("resource", []string{"aws_lambda_function", f.lambdaName()})
+	function.Body().SetAttributeValue("filename", cty.StringVal(f.zipPath()))
+	function.Body().SetAttributeValue("function_name", cty.StringVal(f.lambdaName()))
+	function.Body().SetAttributeValue("runtime", cty.StringVal("provided.al2023"))
+	function.Body().SetAttributeValue("handler", cty.StringVal(functionHandlerName))
+	function.Body().SetAttributeValue("timeout", cty.NumberIntVal(10))
+	function.Body().SetAttributeValue("memory_size", cty.NumberIntVal(128))
+	function.Body().SetAttributeValue("publish", cty.True)
+	function.Body().SetAttributeValue("reserved_concurrent_executions", cty.NumberIntVal(-1))
+	function.Body().SetAttributeValue("architectures", cty.ListVal([]cty.Value{cty.StringVal("arm64")}))
+	function.Body().SetAttributeValue("source_code_hash", cty.StringVal(f.fileBase64SHA256()))
+
+	function.Body().SetAttributeTraversal("role", hcl.Traversal{
+		hcl.TraverseRoot{
+			Name: "aws_iam_role",
+		},
+		hcl.TraverseAttr{
+			Name: f.lambdaRoleName(),
+		},
+		hcl.TraverseAttr{
+			Name: "arn",
+		},
+	})
+	f.project.body.AppendNewline()
+
+	role := f.project.body.AppendNewBlock("resource", []string{"aws_iam_role", f.lambdaRoleName()})
+	role.Body().SetAttributeValue("name", cty.StringVal(f.lambdaRoleName()))
+	role.Body().SetAttributeTraversal("assume_role_policy", hcl.Traversal{
+		hcl.TraverseRoot{
+			Name: "data",
+		},
+		hcl.TraverseAttr{
+			Name: "aws_iam_policy_document",
+		},
+		hcl.TraverseAttr{
+			Name: f.lambdaRoleName(),
+		},
+		hcl.TraverseAttr{
+			Name: "json",
+		},
+	})
+	f.project.body.AppendNewline()
+
+	data := f.project.body.AppendNewBlock("data", []string{"aws_iam_policy_document", f.lambdaRoleName()})
+
+	statement := data.Body().AppendNewBlock("statement", nil)
+	statement.Body().SetAttributeValue("actions", cty.ListVal([]cty.Value{cty.StringVal("sts:AssumeRole")}))
+
+	principals := statement.Body().AppendNewBlock("principals", nil)
+	principals.Body().SetAttributeValue("type", cty.StringVal("Service"))
+	principals.Body().SetAttributeValue("identifiers", cty.ListVal([]cty.Value{cty.StringVal("lambda.amazonaws.com")}))
+
+	f.project.body.AppendNewline()
 }
 
-func (f function) fileBase64SHA256() string {
-	return filebase64sha256(f.BinaryPath())
+func (f *function) clean() {
+	if err := os.Remove(f.binaryPath()); err != nil {
+		log.Fatalf("Failed to remove binary: %v", err)
+	}
 }

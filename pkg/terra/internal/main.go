@@ -11,7 +11,9 @@ func Main(dataDir string, projectName, s3Name, dynamodbName string, p pbuilder.P
 	provider(hclFile.Body(), projectName)
 	terraform(hclFile.Body(), s3Name, dynamodbName)
 
-	project(hclFile.Body(), dataDir, p)
+	project := newProject(hclFile.Body(), dataDir, p)
+
+	project.build()
 
 	return hclFile
 }
